@@ -146,6 +146,11 @@
 		</dependency>
 	</dependencies>
 	<repositories>
+	        <repository>
+                        <id>cloudera</id>
+                        <name>Cloudera repository</name>
+                        <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+                </repository>
 		<repository>
 			<id>aduna-repo</id>
 			<name>Aduna repository</name>
