@@ -98,7 +98,24 @@
 			<groupId>com.thinkaurelius.titan</groupId>
 			<artifactId>titan-hbase</artifactId>
 			<version>${titan.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId> org.apahce.hbase</groupId>
+                    <artifactId>hbase</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId> org.apahce.hadoop</groupId>
+                    <artifactId>hadoop-core</artifactId>
+                </exclusion>
+
+            </exclusions>
 		</dependency>
+        <!-- Adding HBase as a direct dependency -->
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase</artifactId>
+            <version>0.94.2-cdh4.2.0</version>
+        </dependency>
 		<!-- RDF PARSING -->
 		<dependency>
 			<groupId>org.openrdf.sesame</groupId>
