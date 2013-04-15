@@ -4,7 +4,6 @@ import com.thinkaurelius.faunus.BaseTest;
 import com.thinkaurelius.faunus.FaunusVertex;
 import com.thinkaurelius.faunus.mapreduce.FaunusCompiler;
 import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Vertex;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
@@ -13,7 +12,6 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 import org.apache.hadoop.mrunit.types.Pair;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -29,10 +27,8 @@ public class TransformMapTest extends BaseTest {
         mapReduceDriver.setReducer(new Reducer<NullWritable, Text, NullWritable, Text>());
     }
 
-    public void testVerticesPropertyKeySize() throws IOException {
-        Configuration config = new Configuration();
-        config.set(TransformMap.CLOSURE, "{it -> it.propertyKeys.size()}");
-        config.setClass(TransformMap.CLASS, Vertex.class, Element.class);
+    public void testVerticesPropertyKeySize() throws Exception {
+        Configuration config = TransformMap.createConfiguration(Vertex.class, "{it -> it.propertyKeys.size()}");
         mapReduceDriver.withConfiguration(config);
 
         final List<Pair<NullWritable, Text>> results = runWithGraphNoIndex(startPath(generateGraph(ExampleGraph.TINKERGRAPH, config), Vertex.class), this.mapReduceDriver);
@@ -44,10 +40,8 @@ public class TransformMapTest extends BaseTest {
         assertEquals(mapReduceDriver.getCounters().findCounter(TransformMap.Counters.EDGES_PROCESSED).getValue(), 0);
     }
 
-    public void testVerticesPropertyKeySizeWithPaths() throws IOException {
-        Configuration config = new Configuration();
-        config.set(TransformMap.CLOSURE, "{it -> it.propertyKeys.size()}");
-        config.setClass(TransformMap.CLASS, Vertex.class, Element.class);
+    public void testVerticesPropertyKeySizeWithPaths() throws Exception {
+        Configuration config = TransformMap.createConfiguration(Vertex.class, "{it -> it.propertyKeys.size()}");
         config.setBoolean(FaunusCompiler.PATH_ENABLED, true);
         mapReduceDriver.withConfiguration(config);
 
@@ -61,10 +55,8 @@ public class TransformMapTest extends BaseTest {
         assertEquals(mapReduceDriver.getCounters().findCounter(TransformMap.Counters.EDGES_PROCESSED).getValue(), 0);
     }
 
-    public void testEdgesPropertyKeySize() throws IOException {
-        Configuration config = new Configuration();
-        config.set(TransformMap.CLOSURE, "{it -> it.propertyKeys.size()}");
-        config.setClass(TransformMap.CLASS, Edge.class, Element.class);
+    public void testEdgesPropertyKeySize() throws Exception {
+        Configuration config = TransformMap.createConfiguration(Edge.class, "{it -> it.propertyKeys.size()}");
         mapReduceDriver.withConfiguration(config);
 
         final List<Pair<NullWritable, Text>> results = runWithGraphNoIndex(startPath(generateGraph(ExampleGraph.TINKERGRAPH, config), Edge.class), this.mapReduceDriver);

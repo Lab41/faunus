@@ -13,7 +13,6 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -29,10 +28,8 @@ public class VerticesEdgesMapReduceTest extends BaseTest {
         mapReduceDriver.setReducer(new VerticesEdgesMapReduce.Reduce());
     }
 
-    public void testOutCreatedTraversalWithPaths() throws IOException {
-        Configuration config = new Configuration();
-        config.set(VerticesEdgesMapReduce.DIRECTION, Direction.OUT.name());
-        config.setStrings(VerticesEdgesMapReduce.LABELS, "created");
+    public void testOutCreatedTraversalWithPaths() throws Exception {
+        Configuration config = VerticesEdgesMapReduce.createConfiguration(Direction.OUT, "created");
         config.setBoolean(FaunusCompiler.PATH_ENABLED, true);
 
         mapReduceDriver.withConfiguration(config);
@@ -74,10 +71,8 @@ public class VerticesEdgesMapReduceTest extends BaseTest {
         assertEquals(mapReduceDriver.getCounters().findCounter(VerticesEdgesMapReduce.Counters.EDGES_TRAVERSED).getValue(), 4);
     }
 
-    public void testOutAllTraversalWithPaths() throws IOException {
-        Configuration config = new Configuration();
-        config.set(VerticesEdgesMapReduce.DIRECTION, Direction.OUT.name());
-        config.setStrings(VerticesEdgesMapReduce.LABELS);
+    public void testOutAllTraversalWithPaths() throws Exception {
+        Configuration config = VerticesEdgesMapReduce.createConfiguration(Direction.OUT);
         config.setBoolean(FaunusCompiler.PATH_ENABLED, true);
 
         mapReduceDriver.withConfiguration(config);
@@ -106,12 +101,8 @@ public class VerticesEdgesMapReduceTest extends BaseTest {
         assertEquals(mapReduceDriver.getCounters().findCounter(VerticesEdgesMapReduce.Counters.EDGES_TRAVERSED).getValue(), 6);
     }
 
-    public void testOutAllTraversal() throws IOException {
-        Configuration config = new Configuration();
-        config.set(VerticesEdgesMapReduce.DIRECTION, Direction.OUT.name());
-        config.setStrings(VerticesEdgesMapReduce.LABELS);
-        config.setBoolean(FaunusCompiler.PATH_ENABLED, false);
-
+    public void testOutAllTraversal() throws Exception {
+        Configuration config = VerticesEdgesMapReduce.createConfiguration(Direction.OUT);
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = runWithGraph(startPath(generateGraph(ExampleGraph.TINKERGRAPH, config), Vertex.class), mapReduceDriver);
@@ -141,12 +132,8 @@ public class VerticesEdgesMapReduceTest extends BaseTest {
         assertEquals(mapReduceDriver.getCounters().findCounter(VerticesEdgesMapReduce.Counters.EDGES_TRAVERSED).getValue(), 6);
     }
 
-    public void testBothCreatedTraversal() throws IOException {
-        Configuration config = new Configuration();
-        config.set(VerticesEdgesMapReduce.DIRECTION, Direction.BOTH.name());
-        config.setStrings(VerticesEdgesMapReduce.LABELS, "created");
-        config.setBoolean(FaunusCompiler.PATH_ENABLED, false);
-
+    public void testBothCreatedTraversal() throws Exception {
+        Configuration config = VerticesEdgesMapReduce.createConfiguration(Direction.BOTH, "created");
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = runWithGraph(startPath(generateGraph(ExampleGraph.TINKERGRAPH, config), Vertex.class), mapReduceDriver);

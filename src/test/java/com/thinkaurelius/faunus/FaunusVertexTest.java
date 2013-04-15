@@ -1,11 +1,13 @@
 package com.thinkaurelius.faunus;
 
-import com.thinkaurelius.faunus.util.MicroElement;
-import com.thinkaurelius.faunus.util.MicroVertex;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.NullWritable;
+import org.apache.hadoop.io.SequenceFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,6 +15,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +39,8 @@ public class FaunusVertexTest extends BaseTest {
         assertEquals(-1, new FaunusVertex.Comparator().compare(bytes1.toByteArray(), 0, bytes1.size(), bytes2.toByteArray(), 0, bytes2.size()));
         assertEquals(1, new FaunusVertex.Comparator().compare(bytes2.toByteArray(), 0, bytes2.size(), bytes1.toByteArray(), 0, bytes1.size()));
         assertEquals(0, new FaunusVertex.Comparator().compare(bytes1.toByteArray(), 0, bytes1.size(), bytes1.toByteArray(), 0, bytes1.size()));
+
+        System.out.println("Vertex with 0 properties has a byte size of: " + bytes1.toByteArray().length);
     }
 
     public void testSimpleSerialization() throws IOException {
@@ -54,6 +59,7 @@ public class FaunusVertexTest extends BaseTest {
         // in edge types size 1 byte (variable int)
         assertEquals(bytes.toByteArray().length, 6);
         FaunusVertex vertex2 = new FaunusVertex(new DataInputStream(new ByteArrayInputStream(bytes.toByteArray())));
+        System.out.println("Vertex with 0 properties has a byte size of: " + bytes.toByteArray().length);
 
         assertEquals(vertex1, vertex2);
         assertEquals(vertex1.compareTo(vertex2), 0);
@@ -80,14 +86,14 @@ public class FaunusVertexTest extends BaseTest {
         vertex1.setProperty("name", "marko");
         vertex1.setProperty("age", 32);
         vertex1.setProperty("longitude", 10.01d);
-        vertex1.setProperty("latitude", 11.4f);
+        vertex1.setProperty("latitude", 11.399f);
         vertex1.setProperty("size", 10l);
         vertex1.setProperty("boolean", true);
         assertEquals(vertex1.getPropertyKeys().size(), 6);
         assertEquals(vertex1.getProperty("name"), "marko");
         assertEquals(vertex1.getProperty("age"), 32);
         assertEquals(vertex1.getProperty("longitude"), 10.01d);
-        assertEquals(vertex1.getProperty("latitude"), 11.4f);
+        assertEquals(vertex1.getProperty("latitude"), 11.399f);
         assertEquals(vertex1.getProperty("size"), 10l);
         assertTrue((Boolean) vertex1.getProperty("boolean"));
 
@@ -95,6 +101,7 @@ public class FaunusVertexTest extends BaseTest {
 
         vertex1.write(new DataOutputStream(bytes));
         FaunusVertex vertex2 = new FaunusVertex(new DataInputStream(new ByteArrayInputStream(bytes.toByteArray())));
+        System.out.println("Vertex with 6 properties and 2 outgoing edges has a byte size of: " + bytes.toByteArray().length);
 
         assertEquals(vertex1, vertex2);
         assertEquals(vertex1.compareTo(vertex2), 0);
@@ -104,7 +111,7 @@ public class FaunusVertexTest extends BaseTest {
         assertEquals(vertex2.getProperty("name"), "marko");
         assertEquals(vertex2.getProperty("age"), 32);
         assertEquals(vertex2.getProperty("longitude"), 10.01d);
-        assertEquals(vertex2.getProperty("latitude"), 11.4f);
+        assertEquals(vertex2.getProperty("latitude"), 11.399f);
         assertEquals(vertex1.getProperty("size"), 10l);
         assertTrue((Boolean) vertex2.getProperty("boolean"));
         Iterator<Edge> edges = vertex2.getEdges(Direction.OUT).iterator();
@@ -125,21 +132,22 @@ public class FaunusVertexTest extends BaseTest {
         vertex1.setProperty("name", "marko");
         vertex1.setProperty("age", 32);
         vertex1.setProperty("longitude", 10.01d);
-        vertex1.setProperty("latitude", 11.4f);
+        vertex1.setProperty("latitude", 11.399f);
         vertex1.setProperty("size", 10l);
         assertEquals(vertex1.getPropertyKeys().size(), 5);
         assertEquals(vertex1.getProperty("name"), "marko");
         assertEquals(vertex1.getProperty("age"), 32);
         assertEquals(vertex1.getProperty("longitude"), 10.01d);
-        assertEquals(vertex1.getProperty("latitude"), 11.4f);
+        assertEquals(vertex1.getProperty("latitude"), 11.399f);
         assertEquals(vertex1.getProperty("size"), 10l);
-        vertex1.addPath((List) Arrays.asList(new MicroVertex(10l), new MicroVertex(1l)), false);
-        vertex1.addPath((List) Arrays.asList(new MicroVertex(10l), new MicroVertex(2l)), false);
+        vertex1.addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(10l), new FaunusVertex.MicroVertex(1l)), false);
+        vertex1.addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(10l), new FaunusVertex.MicroVertex(2l)), false);
 
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
         vertex1.write(new DataOutputStream(bytes));
         FaunusVertex vertex2 = new FaunusVertex(new DataInputStream(new ByteArrayInputStream(bytes.toByteArray())));
+        System.out.println("Vertex with 4 properties and 2 paths has a byte size of: " + bytes.toByteArray().length);
 
         assertEquals(vertex1, vertex2);
         assertEquals(vertex1.compareTo(vertex2), 0);
@@ -149,11 +157,11 @@ public class FaunusVertexTest extends BaseTest {
         assertEquals(vertex2.getProperty("name"), "marko");
         assertEquals(vertex2.getProperty("age"), 32);
         assertEquals(vertex2.getProperty("longitude"), 10.01d);
-        assertEquals(vertex2.getProperty("latitude"), 11.4f);
+        assertEquals(vertex2.getProperty("latitude"), 11.399f);
         assertEquals(vertex1.getProperty("size"), 10l);
         assertEquals(vertex2.pathCount(), 2);
         assertTrue(vertex2.hasPaths());
-        for (List<MicroElement> path : vertex2.getPaths()) {
+        for (List<FaunusElement.MicroElement> path : vertex2.getPaths()) {
             assertEquals(path.get(0).getId(), 10l);
             assertTrue(path.get(1).getId() == 1l || path.get(1).getId() == 2l);
             assertEquals(path.size(), 2);
@@ -190,6 +198,8 @@ public class FaunusVertexTest extends BaseTest {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         vertex1.write(new DataOutputStream(bytes));
         FaunusVertex vertex2 = new FaunusVertex(new DataInputStream(new ByteArrayInputStream(bytes.toByteArray())));
+
+        System.out.println("Vertex with 0 properties and 1 outgoing edge has a byte size of: " + bytes.toByteArray().length);
 
         assertEquals(vertex1, vertex2);
         assertEquals(vertex1.getId(), 1l);
@@ -247,7 +257,7 @@ public class FaunusVertexTest extends BaseTest {
         assertEquals(vertex.getProperty("name"), "marko");
     }
 
-    public void testGetVerticesAndQuery() throws IOException {
+    public void testGetVerticesAndQuery() throws Exception {
         Map<Long, FaunusVertex> graph = generateGraph(ExampleGraph.TINKERGRAPH, new Configuration());
         for (FaunusVertex vertex : graph.values()) {
             if (vertex.getId().equals(1l)) {
@@ -283,7 +293,7 @@ public class FaunusVertexTest extends BaseTest {
         }
     }
 
-    public void testGetEdges() throws IOException {
+    public void testGetEdges() throws Exception {
         Map<Long, FaunusVertex> vertices = generateGraph(ExampleGraph.TINKERGRAPH, new Configuration());
 
         assertEquals(asList(vertices.get(1l).getEdges(Direction.OUT, "knows")).size(), 2);
@@ -356,5 +366,21 @@ public class FaunusVertexTest extends BaseTest {
     public void testNoPathsOnConstruction() throws Exception {
         noPaths(generateGraph(ExampleGraph.TINKERGRAPH, new Configuration()), Vertex.class);
         noPaths(generateGraph(ExampleGraph.TINKERGRAPH, new Configuration()), Edge.class);
+    }
+
+    public void testSequenceFileRepresentation() throws Exception {
+        final Configuration conf = new Configuration();
+        final SequenceFile.Reader reader = new SequenceFile.Reader(
+                FileSystem.get(conf), new Path(FaunusVertexTest.class.getResource("graph-of-the-gods-2.seq").toURI()), conf);
+        NullWritable key = NullWritable.get();
+        FaunusVertex value = new FaunusVertex();
+
+        final Map<Long, FaunusVertex> graph = new HashMap<Long, FaunusVertex>();
+        while (reader.next(key, value)) {
+            graph.put(value.getIdAsLong(), value);
+            value = new FaunusVertex();
+        }
+        identicalStructure(graph, ExampleGraph.GRAPH_OF_THE_GODS_2);
+        reader.close();
     }
 }

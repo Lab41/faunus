@@ -2,14 +2,12 @@ package com.thinkaurelius.faunus.mapreduce.sideeffect;
 
 import com.thinkaurelius.faunus.BaseTest;
 import com.thinkaurelius.faunus.FaunusVertex;
-import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Vertex;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -27,7 +25,7 @@ public class SideEffectMapTest extends BaseTest {
 
     /*
         // TODO: Assumptions around breadth- vs. depth-first traversal
-        public void testVertexSideEffect() throws IOException {
+        public void testVertexSideEffect() throws Exception {
         Configuration config = new Configuration();
         config.setClass(SideEffectMap.CLASS, Vertex.class, Element.class);
         config.set(SideEffectMap.CLOSURE, "{it -> if(it.count) {it.count++} else {it.count=1}}");
@@ -50,11 +48,8 @@ public class SideEffectMapTest extends BaseTest {
         assertEquals(mapReduceDriver.getCounters().findCounter(SideEffectMap.Counters.OUT_EDGES_PROCESSED).getValue(), 0);
     }*/
 
-    public void testVertexSideEffectOutDegree() throws IOException {
-        Configuration config = new Configuration();
-        config.setClass(SideEffectMap.CLASS, Vertex.class, Element.class);
-        config.set(SideEffectMap.CLOSURE, "{it -> it.degree = it.outE().count()}");
-
+    public void testVertexSideEffectOutDegree() throws Exception {
+        Configuration config = SideEffectMap.createConfiguration(Vertex.class, "{it -> it.degree = it.outE().count()}");
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> results = runWithGraph(startPath(generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config), Vertex.class), mapReduceDriver);
@@ -72,12 +67,9 @@ public class SideEffectMapTest extends BaseTest {
     }
 
 
-    public void testVertexSideEffectInDegree() throws IOException {
+    public void testVertexSideEffectInDegree() throws Exception {
 
-        Configuration config = new Configuration();
-        config.setClass(SideEffectMap.CLASS, Vertex.class, Element.class);
-        config.set(SideEffectMap.CLOSURE, "{it -> it.degree = it.inE().count()}");
-
+        Configuration config = SideEffectMap.createConfiguration(Vertex.class, "{it -> it.degree = it.inE.count()}");
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> results = runWithGraph(startPath(generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config), Vertex.class), mapReduceDriver);

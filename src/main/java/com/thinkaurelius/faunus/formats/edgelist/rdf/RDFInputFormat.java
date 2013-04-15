@@ -5,7 +5,7 @@ import com.thinkaurelius.faunus.FaunusVertex;
 import com.thinkaurelius.faunus.formats.MapReduceFormat;
 import com.thinkaurelius.faunus.formats.edgelist.EdgeListInputMapReduce;
 import com.thinkaurelius.faunus.mapreduce.FaunusCompiler;
-import org.apache.hadoop.conf.Configuration;
+import com.thinkaurelius.faunus.mapreduce.util.EmptyConfiguration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
@@ -15,6 +15,8 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+
+import java.io.IOException;
 
 /**
  * @author Marko A. Rodriguez (http://markorodriguez.com)
@@ -31,8 +33,8 @@ public class RDFInputFormat extends FileInputFormat<NullWritable, FaunusElement>
     public static final String NAME = "name";
 
     @Override
-    public RecordReader<NullWritable, FaunusElement> createRecordReader(final InputSplit split, final TaskAttemptContext context) {
-        return new RDFRecordReader();
+    public RecordReader<NullWritable, FaunusElement> createRecordReader(final InputSplit split, final TaskAttemptContext context) throws IOException {
+        return new RDFRecordReader(context.getConfiguration());
     }
 
     @Override
@@ -49,6 +51,6 @@ public class RDFInputFormat extends FileInputFormat<NullWritable, FaunusElement>
                 FaunusVertex.class,
                 NullWritable.class,
                 FaunusVertex.class,
-                new Configuration());
+                new EmptyConfiguration());
     }
 }

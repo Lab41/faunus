@@ -24,11 +24,13 @@ public class GraphSONRecordReader extends RecordReader<NullWritable, FaunusVerte
         this.lineRecordReader = new LineRecordReader();
     }
 
+    @Override
     public void initialize(final InputSplit genericSplit, final TaskAttemptContext context) throws IOException {
         this.lineRecordReader.initialize(genericSplit, context);
         this.pathEnabled = context.getConfiguration().getBoolean(FaunusCompiler.PATH_ENABLED, false);
     }
 
+    @Override
     public boolean nextKeyValue() throws IOException {
         if (!this.lineRecordReader.nextKeyValue())
             return false;
@@ -48,10 +50,12 @@ public class GraphSONRecordReader extends RecordReader<NullWritable, FaunusVerte
         return this.value;
     }
 
+    @Override
     public float getProgress() throws IOException {
         return this.lineRecordReader.getProgress();
     }
 
+    @Override
     public synchronized void close() throws IOException {
         this.lineRecordReader.close();
     }

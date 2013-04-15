@@ -8,7 +8,6 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -24,10 +23,8 @@ public class VertexMapTest extends BaseTest {
         mapReduceDriver.setReducer(new Reducer<NullWritable, FaunusVertex, NullWritable, FaunusVertex>());
     }
 
-    public void testVerticesWith() throws IOException {
-        Configuration config = new Configuration();
-        config.setStrings(VertexMap.IDS, "1", "2", "2346");
-
+    public void testVerticesWith() throws Exception {
+        Configuration config = VertexMap.createConfiguration(1, 2, 2346);
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = runWithGraph(generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config), mapReduceDriver);
@@ -50,9 +47,8 @@ public class VertexMapTest extends BaseTest {
         identicalStructure(graph, ExampleGraph.TINKERGRAPH);
     }
 
-    public void testVerticesWithPaths() throws IOException {
-        Configuration config = new Configuration();
-        config.setStrings(VertexMap.IDS, "1", "2", "2346", "2345", "3333", "1", "1", "2");
+    public void testVerticesWithPaths() throws Exception {
+        Configuration config = VertexMap.createConfiguration(1, 2, 2346, 2345, 3333, 1, 1, 2);
         config.setBoolean(FaunusCompiler.PATH_ENABLED, true);
         mapReduceDriver.withConfiguration(config);
 

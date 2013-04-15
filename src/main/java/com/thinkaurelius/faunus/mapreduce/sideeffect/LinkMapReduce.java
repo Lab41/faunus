@@ -7,7 +7,7 @@ import com.thinkaurelius.faunus.Holder;
 import com.thinkaurelius.faunus.Tokens;
 import com.thinkaurelius.faunus.mapreduce.FaunusCompiler;
 import com.thinkaurelius.faunus.mapreduce.util.CounterMap;
-import com.thinkaurelius.faunus.util.MicroElement;
+import com.thinkaurelius.faunus.mapreduce.util.EmptyConfiguration;
 import com.tinkerpop.blueprints.Direction;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
@@ -40,7 +40,7 @@ public class LinkMapReduce {
     }
 
     public static Configuration createConfiguration(final Direction direction, final int step, final String label, final String mergeWeightKey) {
-        final Configuration configuration = new Configuration();
+        final Configuration configuration = new EmptyConfiguration();
         configuration.setInt(STEP, step);
         configuration.set(DIRECTION, direction.name());
         configuration.set(LABEL, label);
@@ -51,6 +51,7 @@ public class LinkMapReduce {
             configuration.setBoolean(MERGE_DUPLICATES, true);
             configuration.set(MERGE_WEIGHT_KEY, mergeWeightKey);
         }
+        configuration.setBoolean(FaunusCompiler.PATH_ENABLED, true);
         return configuration;
     }
 
@@ -87,7 +88,7 @@ public class LinkMapReduce {
                 long edgesCreated = 0;
                 if (this.mergeDuplicates) {
                     final CounterMap<Long> map = new CounterMap<Long>();
-                    for (final List<MicroElement> path : value.getPaths()) {
+                    for (final List<FaunusElement.MicroElement> path : value.getPaths()) {
                         map.incr(path.get(this.step).getId(), 1);
                     }
                     for (java.util.Map.Entry<Long, Long> entry : map.entrySet()) {
@@ -108,7 +109,7 @@ public class LinkMapReduce {
                         context.write(this.longWritable, this.holder.set('e', edge));
                     }
                 } else {
-                    for (final List<MicroElement> path : value.getPaths()) {
+                    for (final List<FaunusElement.MicroElement> path : value.getPaths()) {
                         final long linkElementId = path.get(this.step).getId();
                         final FaunusEdge edge;
                         if (this.direction.equals(IN))

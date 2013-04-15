@@ -4,19 +4,14 @@ import com.thinkaurelius.faunus.BaseTest;
 import com.thinkaurelius.faunus.FaunusEdge;
 import com.thinkaurelius.faunus.FaunusVertex;
 import com.thinkaurelius.faunus.Holder;
-import com.thinkaurelius.faunus.mapreduce.FaunusCompiler;
-import com.thinkaurelius.faunus.util.MicroEdge;
-import com.thinkaurelius.faunus.util.MicroVertex;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Vertex;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -35,12 +30,8 @@ public class BackFilterMapReduceTest extends BaseTest {
         mapReduceDriver.setReducer(new BackFilterMapReduce.Reduce());
     }
 
-    public void testVerticesFullStart() throws IOException {
-        Configuration config = new Configuration();
-        config.setClass(BackFilterMapReduce.CLASS, Vertex.class, Element.class);
-        config.setInt(BackFilterMapReduce.STEP, 0);
-        config.setBoolean(FaunusCompiler.PATH_ENABLED, true);
-
+    public void testVerticesFullStart() throws Exception {
+        Configuration config = BackFilterMapReduce.createConfiguration(Vertex.class, 0);
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = runWithGraph(startPath(generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config), Vertex.class), mapReduceDriver);
@@ -56,21 +47,17 @@ public class BackFilterMapReduceTest extends BaseTest {
         identicalStructure(graph, ExampleGraph.TINKERGRAPH);
     }
 
-    public void testVerticesBiasedStart() throws IOException {
-        Configuration config = new Configuration();
-        config.setClass(BackFilterMapReduce.CLASS, Vertex.class, Element.class);
-        config.setInt(BackFilterMapReduce.STEP, 0);
-        config.setBoolean(FaunusCompiler.PATH_ENABLED, true);
-
+    public void testVerticesBiasedStart() throws Exception {
+        Configuration config = BackFilterMapReduce.createConfiguration(Vertex.class, 0);
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config);
 
-        graph.get(1l).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(1l)), false);
-        graph.get(2l).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(2l)), false);
-        graph.get(3l).addPath((List) Arrays.asList(new MicroVertex(2l), new MicroVertex(3l)), false);
-        graph.get(4l).addPath((List) Arrays.asList(new MicroVertex(3l), new MicroVertex(4l)), false);
-        graph.get(5l).addPath((List) Arrays.asList(new MicroVertex(3l), new MicroVertex(5l)), false);
+        graph.get(1l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(1l)), false);
+        graph.get(2l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(2l)), false);
+        graph.get(3l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(2l), new FaunusVertex.MicroVertex(3l)), false);
+        graph.get(4l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(3l), new FaunusVertex.MicroVertex(4l)), false);
+        graph.get(5l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(3l), new FaunusVertex.MicroVertex(5l)), false);
 
         graph = runWithGraph(graph, mapReduceDriver);
 
@@ -85,44 +72,36 @@ public class BackFilterMapReduceTest extends BaseTest {
         identicalStructure(graph, ExampleGraph.TINKERGRAPH);
     }
 
-    public void testBackingUpToEdgesException() throws IOException {
-        Configuration config = new Configuration();
-        config.setClass(BackFilterMapReduce.CLASS, Vertex.class, Element.class);
-        config.setInt(BackFilterMapReduce.STEP, 1);
-        config.setBoolean(FaunusCompiler.PATH_ENABLED, true);
-
+    public void testBackingUpToEdgesException() throws Exception {
+        Configuration config = BackFilterMapReduce.createConfiguration(Vertex.class, 1);
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config);
 
-        graph.get(1l).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroEdge(1l)), false);
-        graph.get(2l).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroEdge(2l)), false);
-        graph.get(3l).addPath((List) Arrays.asList(new MicroVertex(2l), new MicroEdge(3l)), false);
-        graph.get(4l).addPath((List) Arrays.asList(new MicroVertex(3l), new MicroEdge(4l)), false);
-        graph.get(5l).addPath((List) Arrays.asList(new MicroVertex(3l), new MicroEdge(5l)), false);
+        graph.get(1l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusEdge.MicroEdge(1l)), false);
+        graph.get(2l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusEdge.MicroEdge(2l)), false);
+        graph.get(3l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(2l), new FaunusEdge.MicroEdge(3l)), false);
+        graph.get(4l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(3l), new FaunusEdge.MicroEdge(4l)), false);
+        graph.get(5l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(3l), new FaunusEdge.MicroEdge(5l)), false);
 
         try {
             graph = runWithGraph(graph, mapReduceDriver);
             assertFalse(true);
-        } catch (IOException e) {
+        } catch (Exception e) {
             assertTrue(true);
         }
     }
 
-    public void testBackingUpToVerticesFromEdges() throws IOException {
-        Configuration config = new Configuration();
-        config.setClass(BackFilterMapReduce.CLASS, Edge.class, Element.class);
-        config.setInt(BackFilterMapReduce.STEP, 0);
-        config.setBoolean(FaunusCompiler.PATH_ENABLED, true);
-
+    public void testBackingUpToVerticesFromEdges() throws Exception {
+        Configuration config = BackFilterMapReduce.createConfiguration(Edge.class, 0);
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config);
 
-        ((FaunusEdge) graph.get(1l).getEdges(Direction.OUT, "created").iterator().next()).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroEdge(2l)), false);
-        ((FaunusEdge) graph.get(6l).getEdges(Direction.OUT, "created").iterator().next()).addPath((List) Arrays.asList(new MicroVertex(6l), new MicroEdge(2l)), false);
-        ((FaunusEdge) graph.get(6l).getEdges(Direction.OUT, "created").iterator().next()).addPath((List) Arrays.asList(new MicroVertex(2l), new MicroEdge(2l)), false);
-        ((FaunusEdge) graph.get(6l).getEdges(Direction.OUT, "created").iterator().next()).addPath((List) Arrays.asList(new MicroVertex(2l), new MicroEdge(2l)), false);
+        ((FaunusEdge) graph.get(1l).getEdges(Direction.OUT, "created").iterator().next()).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusEdge.MicroEdge(2l)), false);
+        ((FaunusEdge) graph.get(6l).getEdges(Direction.OUT, "created").iterator().next()).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(6l), new FaunusEdge.MicroEdge(2l)), false);
+        ((FaunusEdge) graph.get(6l).getEdges(Direction.OUT, "created").iterator().next()).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(2l), new FaunusEdge.MicroEdge(2l)), false);
+        ((FaunusEdge) graph.get(6l).getEdges(Direction.OUT, "created").iterator().next()).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(2l), new FaunusEdge.MicroEdge(2l)), false);
 
 
         graph = runWithGraph(graph, mapReduceDriver);

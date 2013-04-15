@@ -66,6 +66,7 @@ public class FaunusCompiler extends Configured implements Tool {
     public FaunusCompiler(final FaunusGraph graph) {
         this.graph = graph;
         this.setConf(new Configuration());
+        this.addConfiguration(this.graph.getConfiguration());
     }
 
     private String toStringOfJob(final Class sequenceClass) {
@@ -87,12 +88,10 @@ public class FaunusCompiler extends Configured implements Tool {
         return list.toArray(new String[list.size()]);
     }
 
-    public void setPathEnabled(final boolean pathEnabled) {
-        this.pathEnabled = pathEnabled;
-    }
-
     private void addConfiguration(final Configuration configuration) {
         for (final Map.Entry<String, String> entry : configuration) {
+            if (entry.getKey().equals(PATH_ENABLED) & Boolean.valueOf(entry.getValue()))
+                this.pathEnabled = true;
             this.getConf().set(entry.getKey() + "-" + this.mapSequenceClasses.size(), entry.getValue());
             this.getConf().set(entry.getKey(), entry.getValue());
         }
@@ -156,7 +155,6 @@ public class FaunusCompiler extends Configured implements Tool {
 
     public void completeSequence() {
         if (this.mapSequenceClasses.size() > 0) {
-            this.addConfiguration(this.graph.getConfiguration());
             this.getConf().setStrings(MapSequence.MAP_CLASSES, toStringMapSequenceClasses());
             final Job job;
             try {
@@ -191,6 +189,7 @@ public class FaunusCompiler extends Configured implements Tool {
             this.jobs.add(job);
 
             this.setConf(new Configuration());
+            this.addConfiguration(this.graph.getConfiguration());
             this.mapSequenceClasses.clear();
             this.combinerClass = null;
             this.reduceClass = null;

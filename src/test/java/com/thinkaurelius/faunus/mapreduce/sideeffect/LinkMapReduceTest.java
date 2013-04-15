@@ -4,15 +4,12 @@ import com.thinkaurelius.faunus.BaseTest;
 import com.thinkaurelius.faunus.FaunusVertex;
 import com.thinkaurelius.faunus.Holder;
 import com.thinkaurelius.faunus.Tokens;
-import com.thinkaurelius.faunus.mapreduce.FaunusCompiler;
-import com.thinkaurelius.faunus.util.MicroVertex;
 import com.tinkerpop.blueprints.Direction;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -33,14 +30,9 @@ public class LinkMapReduceTest extends BaseTest {
         mapReduceDriver.setReducer(new LinkMapReduce.Reduce());
     }
 
-    public void testKnowsCreatedTraversal() throws IOException {
+    public void testKnowsCreatedTraversal() throws Exception {
 
-        Configuration config = new Configuration();
-        config.setInt(LinkMapReduce.STEP, 0);
-        config.set(LinkMapReduce.DIRECTION, Direction.IN.name());
-        config.set(LinkMapReduce.LABEL, "knowsCreated");
-        config.setBoolean(FaunusCompiler.PATH_ENABLED, true);
-
+        Configuration config = LinkMapReduce.createConfiguration(Direction.IN, 0, "knowsCreated", null);
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config);
@@ -49,8 +41,8 @@ public class LinkMapReduceTest extends BaseTest {
             vertex.removeEdges(Tokens.Action.DROP, Direction.BOTH);
 
         }
-        graph.get(3l).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(3l)), false);
-        graph.get(5l).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(5l)), false);
+        graph.get(3l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(3l)), false);
+        graph.get(5l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(5l)), false);
 
         graph = runWithGraph(graph, mapReduceDriver);
         assertEquals(asList(graph.get(1l).getEdges(OUT, "knowsCreated")).size(), 2);
@@ -67,22 +59,17 @@ public class LinkMapReduceTest extends BaseTest {
         assertEquals(mapReduceDriver.getCounters().findCounter(LinkMapReduce.Counters.IN_EDGES_CREATED).getValue(), 2);
     }
 
-    public void testCreated2Traversal() throws IOException {
+    public void testCreated2Traversal() throws Exception {
 
-        Configuration config = new Configuration();
-        config.setInt(LinkMapReduce.STEP, 0);
-        config.set(LinkMapReduce.DIRECTION, Direction.OUT.name());
-        config.set(LinkMapReduce.LABEL, "created2");
-        config.setBoolean(FaunusCompiler.PATH_ENABLED, true);
-
+        Configuration config = LinkMapReduce.createConfiguration(Direction.OUT, 0, "created2", null);
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config);
         for (FaunusVertex vertex : graph.values()) {
             vertex.removeEdges(Tokens.Action.DROP, Direction.BOTH);
         }
-        graph.get(3l).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(3l)), false);
-        graph.get(5l).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(5l)), false);
+        graph.get(3l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(3l)), false);
+        graph.get(5l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(5l)), false);
 
         graph = runWithGraph(graph, mapReduceDriver);
         assertEquals(asList(graph.get(1l).getEdges(IN, "created2")).size(), 2);

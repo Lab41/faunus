@@ -3,18 +3,14 @@ package com.thinkaurelius.faunus.mapreduce.filter;
 import com.thinkaurelius.faunus.BaseTest;
 import com.thinkaurelius.faunus.FaunusEdge;
 import com.thinkaurelius.faunus.FaunusVertex;
-import com.thinkaurelius.faunus.mapreduce.FaunusCompiler;
-import com.thinkaurelius.faunus.util.MicroVertex;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Vertex;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -32,13 +28,9 @@ public class CyclicPathFilterMapTest extends BaseTest {
         mapReduceDriver.setReducer(new Reducer<NullWritable, FaunusVertex, NullWritable, FaunusVertex>());
     }
 
-    public void testVertices() throws IOException {
-        Configuration config = new Configuration();
-        config.setClass(CyclicPathFilterMap.CLASS, Vertex.class, Element.class);
-        config.setBoolean(FaunusCompiler.PATH_ENABLED, true);
-
+    public void testVertices() throws Exception {
+        Configuration config = CyclicPathFilterMap.createConfiguration(Vertex.class);
         mapReduceDriver.withConfiguration(config);
-
         Map<Long, FaunusVertex> graph = generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config);
 
         assertEquals(graph.size(), 6);
@@ -49,9 +41,9 @@ public class CyclicPathFilterMapTest extends BaseTest {
         assertEquals(graph.get(5l).pathCount(), 0);
         assertEquals(graph.get(6l).pathCount(), 0);
 
-        graph.get(1l).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(2l)), false);
-        graph.get(1l).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(1l)), false);
-        graph.get(1l).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(1l)), false);
+        graph.get(1l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(2l)), false);
+        graph.get(1l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(1l)), false);
+        graph.get(1l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(1l)), false);
 
         assertEquals(graph.get(1l).pathCount(), 3);
         assertEquals(graph.get(2l).pathCount(), 0);
@@ -75,10 +67,8 @@ public class CyclicPathFilterMapTest extends BaseTest {
         identicalStructure(graph, BaseTest.ExampleGraph.TINKERGRAPH);
     }
 
-    public void testEdges() throws IOException {
-        Configuration config = new Configuration();
-        config.setClass(CyclicPathFilterMap.CLASS, Edge.class, Element.class);
-        config.setBoolean(FaunusCompiler.PATH_ENABLED, true);
+    public void testEdges() throws Exception {
+        Configuration config = CyclicPathFilterMap.createConfiguration(Edge.class);
 
         mapReduceDriver.withConfiguration(config);
 
@@ -93,9 +83,9 @@ public class CyclicPathFilterMapTest extends BaseTest {
         assertEquals(graph.get(5l).pathCount(), 0);
         assertEquals(graph.get(6l).pathCount(), 0);
 
-        ((FaunusEdge) graph.get(1l).getEdges(Direction.OUT).iterator().next()).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(2l)), false);
-        ((FaunusEdge) graph.get(1l).getEdges(Direction.OUT).iterator().next()).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(1l)), false);
-        ((FaunusEdge) graph.get(1l).getEdges(Direction.OUT).iterator().next()).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(1l)), false);
+        ((FaunusEdge) graph.get(1l).getEdges(Direction.OUT).iterator().next()).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(2l)), false);
+        ((FaunusEdge) graph.get(1l).getEdges(Direction.OUT).iterator().next()).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(1l)), false);
+        ((FaunusEdge) graph.get(1l).getEdges(Direction.OUT).iterator().next()).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(1l)), false);
 
         assertEquals(graph.get(1l).pathCount(), 0);
         assertEquals(((FaunusEdge) graph.get(1l).getEdges(Direction.OUT).iterator().next()).pathCount(), 3);

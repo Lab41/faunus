@@ -5,14 +5,12 @@ import com.thinkaurelius.faunus.FaunusEdge;
 import com.thinkaurelius.faunus.FaunusVertex;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Vertex;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -28,15 +26,8 @@ public class IntervalFilterMapTest extends BaseTest {
         mapReduceDriver.setReducer(new Reducer<NullWritable, FaunusVertex, NullWritable, FaunusVertex>());
     }
 
-    public void testVerticesOnAge() throws IOException {
-        Configuration config = new Configuration();
-        config.setClass(IntervalFilterMap.CLASS, Vertex.class, Element.class);
-        config.setBoolean(IntervalFilterMap.NULL_WILDCARD, false);
-        config.setClass(IntervalFilterMap.VALUE_CLASS, Number.class, Number.class);
-        config.set(IntervalFilterMap.START_VALUE, "10");
-        config.set(IntervalFilterMap.END_VALUE, "30");
-        config.set(IntervalFilterMap.KEY, "age");
-
+    public void testVerticesOnAge() throws Exception {
+        Configuration config = IntervalFilterMap.createConfiguration(Vertex.class, "age", 10, 30);
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = runWithGraph(startPath(generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config), Vertex.class), mapReduceDriver);
@@ -54,15 +45,8 @@ public class IntervalFilterMapTest extends BaseTest {
         identicalStructure(graph, ExampleGraph.TINKERGRAPH);
     }
 
-    public void testEdgesOnWeight() throws IOException {
-        Configuration config = new Configuration();
-        config.setClass(IntervalFilterMap.CLASS, Edge.class, Element.class);
-        config.setBoolean(IntervalFilterMap.NULL_WILDCARD, false);
-        config.setClass(IntervalFilterMap.VALUE_CLASS, Float.class, Float.class);
-        config.set(IntervalFilterMap.START_VALUE, "0.3");
-        config.set(IntervalFilterMap.END_VALUE, "0.45");
-        config.set(IntervalFilterMap.KEY, "weight");
-
+    public void testEdgesOnWeight() throws Exception {
+        Configuration config = IntervalFilterMap.createConfiguration(Edge.class, "weight", 0.3f, 0.45f);
         mapReduceDriver.withConfiguration(config);
         Map<Long, FaunusVertex> graph = runWithGraph(startPath(generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config), Edge.class), mapReduceDriver);
         assertEquals(graph.size(), 6);

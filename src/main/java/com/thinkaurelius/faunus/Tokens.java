@@ -41,7 +41,7 @@ public class Tokens {
     public static final String NEWLINE = "\n";
     public static final String EMPTY_STRING = "";
 
-    public static final String VERSION = "0.1.1";
+    public static final String VERSION = "0.3.0-SNAPSHOT";
     public static final String FAUNUS_JOB_JAR = "faunus-" + VERSION + "-job.jar";
     public static final String FAUNUS_HOME = "FAUNUS_HOME";
 
@@ -52,5 +52,7 @@ public class Tokens {
 
     public static final String BZ2 = "bz2";
 
-    public static int MAP_SPILL_OVER = 500;
+    public static int DEFAULT_MAP_SPILL_OVER = 500;
+    public static final String FAUNUS_ENGINE_MAP_SPILL_OVER = "faunus.engine.map-spill-over";
+
 }

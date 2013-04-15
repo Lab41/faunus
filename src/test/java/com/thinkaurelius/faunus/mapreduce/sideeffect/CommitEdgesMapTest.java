@@ -11,7 +11,6 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -27,10 +26,8 @@ public class CommitEdgesMapTest extends BaseTest {
         mapReduceDriver.setReducer(new Reducer<NullWritable, FaunusVertex, NullWritable, FaunusVertex>());
     }
 
-    public void testDropAllEdges() throws IOException {
-        Configuration config = new Configuration();
-        config.set(CommitEdgesMap.ACTION, Tokens.Action.DROP.name());
-
+    public void testDropAllEdges() throws Exception {
+        Configuration config = CommitEdgesMap.createConfiguration(Tokens.Action.DROP);
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = runWithGraph(startPath(generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config), Edge.class), mapReduceDriver);
@@ -52,10 +49,8 @@ public class CommitEdgesMapTest extends BaseTest {
         assertEquals(mapReduceDriver.getCounters().findCounter(CommitEdgesMap.Counters.IN_EDGES_KEPT).getValue(), 0);
     }
 
-    public void testKeepAllEdges() throws IOException {
-        Configuration config = new Configuration();
-        config.set(CommitEdgesMap.ACTION, Tokens.Action.KEEP.name());
-
+    public void testKeepAllEdges() throws Exception {
+        Configuration config = CommitEdgesMap.createConfiguration(Tokens.Action.KEEP);
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = runWithGraph(startPath(generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config), Edge.class), mapReduceDriver);
@@ -77,10 +72,8 @@ public class CommitEdgesMapTest extends BaseTest {
         assertEquals(mapReduceDriver.getCounters().findCounter(CommitEdgesMap.Counters.IN_EDGES_KEPT).getValue(), 6);
     }
 
-    public void testDropAllCreatedEdge() throws IOException {
-        Configuration config = new Configuration();
-        config.set(CommitEdgesMap.ACTION, Tokens.Action.DROP.name());
-
+    public void testDropAllCreatedEdge() throws Exception {
+        Configuration config = CommitEdgesMap.createConfiguration(Tokens.Action.DROP);
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config);
@@ -112,7 +105,7 @@ public class CommitEdgesMapTest extends BaseTest {
         assertEquals(mapReduceDriver.getCounters().findCounter(CommitEdgesMap.Counters.IN_EDGES_KEPT).getValue(), 2);
     }
 
-    public void testKeepAllCreatedEdge() throws IOException {
+    public void testKeepAllCreatedEdge() throws Exception {
         Configuration config = new Configuration();
         config.set(CommitEdgesMap.ACTION, Tokens.Action.KEEP.name());
 

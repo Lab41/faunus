@@ -3,7 +3,6 @@ package com.thinkaurelius.faunus.mapreduce.transform;
 import com.thinkaurelius.faunus.BaseTest;
 import com.thinkaurelius.faunus.FaunusVertex;
 import com.thinkaurelius.faunus.mapreduce.FaunusCompiler;
-import com.thinkaurelius.faunus.util.MicroVertex;
 import com.tinkerpop.blueprints.Vertex;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.NullWritable;
@@ -12,7 +11,6 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mrunit.mapreduce.MapReduceDriver;
 import org.apache.hadoop.mrunit.types.Pair;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -30,19 +28,16 @@ public class PathMapTest extends BaseTest {
         mapReduceDriver.setReducer(new Reducer<NullWritable, Text, NullWritable, Text>());
     }
 
-    public void testPathsFromVertices() throws IOException {
-        Configuration config = new Configuration();
-        config.set(PathMap.CLASS, Vertex.class.getName());
-        config.setBoolean(FaunusCompiler.PATH_ENABLED, true);
-
+    public void testPathsFromVertices() throws Exception {
+        Configuration config = PathMap.createConfiguration(Vertex.class);
         mapReduceDriver.withConfiguration(config);
 
         Map<Long, FaunusVertex> graph = generateGraph(BaseTest.ExampleGraph.TINKERGRAPH, config);
 
-        graph.get(1l).addPath((List) Arrays.asList(new MicroVertex(2l), new MicroVertex(1l)), false);
-        graph.get(2l).addPath((List) Arrays.asList(new MicroVertex(2l), new MicroVertex(2l)), false);
-        graph.get(3l).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(3l)), false);
-        graph.get(3l).addPath((List) Arrays.asList(new MicroVertex(1l), new MicroVertex(3l)), false);
+        graph.get(1l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(2l), new FaunusVertex.MicroVertex(1l)), false);
+        graph.get(2l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(2l), new FaunusVertex.MicroVertex(2l)), false);
+        graph.get(3l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(3l)), false);
+        graph.get(3l).addPath((List) Arrays.asList(new FaunusVertex.MicroVertex(1l), new FaunusVertex.MicroVertex(3l)), false);
 
         assertEquals(graph.size(), 6);
         assertEquals(graph.get(1l).pathCount(), 1);
@@ -66,9 +61,8 @@ public class PathMapTest extends BaseTest {
         identicalStructure(graph, BaseTest.ExampleGraph.TINKERGRAPH);
     }
 
-    public void testPathsAndGetException() throws IOException {
-        Configuration config = new Configuration();
-        config.set(PathMap.CLASS, Vertex.class.getName());
+    public void testPathsAndGetException() throws Exception {
+        Configuration config = PathMap.createConfiguration(Vertex.class);
         config.setBoolean(FaunusCompiler.PATH_ENABLED, false);
 
         mapReduceDriver.withConfiguration(config);
