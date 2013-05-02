@@ -7,20 +7,6 @@ public class Tokens {
 
     public enum Action {DROP, KEEP}
 
-    public enum Order {INCREASING, DECREASING}
-
-
-    public static enum F {
-        /**
-         * decreasing order
-         */
-        decr,
-        /**
-         * increasing order
-         */
-        incr
-    }
-
     private static final String NAMESPACE = "faunus.mapreduce";
 
     public static String makeNamespace(final Class klass) {
@@ -41,7 +27,7 @@ public class Tokens {
     public static final String NEWLINE = "\n";
     public static final String EMPTY_STRING = "";
 
-    public static final String VERSION = "0.3.0-SNAPSHOT";
+    public static final String VERSION = "0.3.0";
     public static final String FAUNUS_JOB_JAR = "faunus-" + VERSION + "-job.jar";
     public static final String FAUNUS_HOME = "FAUNUS_HOME";
 
@@ -53,6 +39,6 @@ public class Tokens {
     public static final String BZ2 = "bz2";
 
     public static int DEFAULT_MAP_SPILL_OVER = 500;
-    public static final String FAUNUS_ENGINE_MAP_SPILL_OVER = "faunus.engine.map-spill-over";
+    public static final String FAUNUS_PIPELINE_MAP_SPILL_OVER = "faunus.pipeline.map-spill-over";
 
 }

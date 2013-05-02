@@ -1,6 +1,7 @@
 package com.thinkaurelius.faunus.formats.script;
 
 import com.thinkaurelius.faunus.FaunusVertex;
+import com.thinkaurelius.faunus.formats.VertexQueryFilter;
 import com.thinkaurelius.faunus.mapreduce.FaunusCompiler;
 import com.thinkaurelius.faunus.tinkerpop.gremlin.FaunusGremlinScriptEngine;
 import org.apache.hadoop.fs.FileSystem;
@@ -25,19 +26,20 @@ public class ScriptRecordReader extends RecordReader<NullWritable, FaunusVertex>
     private static final String LINE = "line";
 
     private final ScriptEngine engine = new FaunusGremlinScriptEngine();
-
+    private final VertexQueryFilter vertexQuery;
     private boolean pathEnabled;
     private final LineRecordReader lineRecordReader;
-    private FaunusVertex value;
+    private FaunusVertex vertex;
 
-    public ScriptRecordReader(final TaskAttemptContext context) throws IOException {
+    public ScriptRecordReader(final VertexQueryFilter vertexQuery, final TaskAttemptContext context) throws IOException {
         this.lineRecordReader = new LineRecordReader();
-        this.value = new FaunusVertex();
+        this.vertex = new FaunusVertex();
+        this.vertexQuery = vertexQuery;
         this.pathEnabled = context.getConfiguration().getBoolean(FaunusCompiler.PATH_ENABLED, false);
 
         final FileSystem fs = FileSystem.get(context.getConfiguration());
         try {
-            this.engine.eval(new InputStreamReader(fs.open(new Path(context.getConfiguration().get(ScriptInputFormat.INPUT_SCRIPT_FILE)))));
+            this.engine.eval(new InputStreamReader(fs.open(new Path(context.getConfiguration().get(ScriptInputFormat.FAUNUS_GRAPH_INPUT_SCRIPT_FILE)))));
         } catch (Exception e) {
             throw new IOException(e.getMessage());
         }
@@ -54,9 +56,10 @@ public class ScriptRecordReader extends RecordReader<NullWritable, FaunusVertex>
             else {
                 try {
                     this.engine.put(LINE, this.lineRecordReader.getCurrentValue().toString());
-                    this.engine.put(VERTEX, this.value);
+                    this.engine.put(VERTEX, this.vertex);
                     if ((Boolean) engine.eval(READ_CALL)) {
-                        this.value.enablePath(this.pathEnabled);
+                        this.vertex.enablePath(this.pathEnabled);
+                        this.vertexQuery.defaultFilter(this.vertex);
                         return true;
                     }
                 } catch (Exception e) {
@@ -73,7 +76,7 @@ public class ScriptRecordReader extends RecordReader<NullWritable, FaunusVertex>
 
     @Override
     public FaunusVertex getCurrentValue() {
-        return this.value;
+        return this.vertex;
     }
 
     public float getProgress() throws IOException {

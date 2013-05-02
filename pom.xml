@@ -10,7 +10,7 @@
     <groupId>com.thinkaurelius.faunus</groupId>
     <artifactId>faunus</artifactId>
     <!-- DON'T FORGET TO UPDATE Tokens.java -->
-    <version>0.1.1</version>
+    <version>0.4.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <url>http://thinkaurelius.github.com/faunus/</url>
     <name>Faunus: Graph Analytics Engine</name>
@@ -20,7 +20,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <sesame.version>2.6.10</sesame.version>
         <tinkerpop.version>2.3.0</tinkerpop.version>
-        <titan.version>0.2.1</titan.version>
 		<hadoop.core.version>2.0.0-mr1-cdh4.2.0</hadoop.core.version>
 		<hadoop.version>2.0.0-cdh4.2.0</hadoop.version>
     </properties>
@@ -264,7 +263,7 @@
             <plugin>
                 <groupId>org.codehaus.gmaven</groupId>
                 <artifactId>gmaven-plugin</artifactId>
-                <version>1.4</version>
+                <version>1.5</version>
                 <executions>
                     <execution>
                         <goals>
@@ -274,7 +273,7 @@
                             <goal>testCompile</goal>
                         </goals>
                         <configuration>
-                            <providerSelection>1.7</providerSelection>
+                            <providerSelection>1.8</providerSelection>
                         </configuration>
                     </execution>
                 </executions>

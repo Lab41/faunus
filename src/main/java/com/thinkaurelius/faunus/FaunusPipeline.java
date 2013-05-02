@@ -1,5 +1,6 @@
 package com.thinkaurelius.faunus;
 
+import com.thinkaurelius.faunus.formats.EdgeCopyMapReduce;
 import com.thinkaurelius.faunus.formats.MapReduceFormat;
 import com.thinkaurelius.faunus.mapreduce.FaunusCompiler;
 import com.thinkaurelius.faunus.mapreduce.IdentityMap;
@@ -33,6 +34,7 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Query;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.pipes.transform.TransformPipe;
 import com.tinkerpop.pipes.util.structures.Pair;
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.DoubleWritable;
@@ -87,14 +89,6 @@ public class FaunusPipeline {
             return Query.Compare.LESS_THAN;
         else
             return Query.Compare.LESS_THAN_EQUAL;
-    }
-
-    private Tokens.Order convert(final Tokens.F order) {
-        if (order.equals(Tokens.F.decr))
-            return Tokens.Order.DECREASING;
-        else
-            return Tokens.Order.INCREASING;
-
     }
 
     protected class State {
@@ -210,6 +204,18 @@ public class FaunusPipeline {
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage(), e);
             }
+        }
+
+        if (null != this.graph.getConf().get(EdgeCopyMapReduce.FAUNUS_GRAPH_INPUT_EDGE_COPY_DIRECTION)) {
+            this.compiler.addMapReduce(EdgeCopyMapReduce.Map.class,
+                    null,
+                    EdgeCopyMapReduce.Reduce.class,
+                    null,
+                    LongWritable.class,
+                    Holder.class,
+                    NullWritable.class,
+                    FaunusVertex.class,
+                    EdgeCopyMapReduce.createConfiguration(this.graph.getConf().getEnum(EdgeCopyMapReduce.FAUNUS_GRAPH_INPUT_EDGE_COPY_DIRECTION, Direction.OUT)));
         }
     }
 
@@ -348,7 +354,7 @@ public class FaunusPipeline {
         this.state.incrStep();
 
         this.compiler.addMapReduce(VerticesVerticesMapReduce.Map.class,
-                VerticesVerticesMapReduce.Combiner.class,
+                null,
                 VerticesVerticesMapReduce.Reduce.class,
                 null,
                 LongWritable.class,
@@ -398,15 +404,15 @@ public class FaunusPipeline {
         this.state.assertAtVertex();
         this.state.incrStep();
 
-        this.compiler.addMapReduce(VerticesVerticesMapReduce.Map.class,
-                VerticesVerticesMapReduce.Combiner.class,
-                VerticesVerticesMapReduce.Reduce.class,
+        this.compiler.addMapReduce(VerticesEdgesMapReduce.Map.class,
+                null,
+                VerticesEdgesMapReduce.Reduce.class,
                 null,
                 LongWritable.class,
                 Holder.class,
                 NullWritable.class,
                 FaunusVertex.class,
-                VerticesVerticesMapReduce.createConfiguration(direction, labels));
+                VerticesEdgesMapReduce.createConfiguration(direction, labels));
         this.state.set(Edge.class);
         makeMapReduceString(VerticesEdgesMapReduce.class, direction.name(), Arrays.asList(labels));
         return this;
@@ -536,7 +542,7 @@ public class FaunusPipeline {
      * @param elementKey the key of the element to associate it with
      * @return the extended FaunusPipeline
      */
-    public FaunusPipeline order(final Tokens.Order order, final String elementKey) {
+    public FaunusPipeline order(final TransformPipe.Order order, final String elementKey) {
         this.state.assertNotLocked();
         final Pair<String, Class<? extends WritableComparable>> pair = this.state.popProperty();
         if (null != pair) {
@@ -563,7 +569,7 @@ public class FaunusPipeline {
      * @param order increasing and descending order
      * @return the extended FaunusPipeline
      */
-    public FaunusPipeline order(final Tokens.Order order) {
+    public FaunusPipeline order(final TransformPipe.Order order) {
         return this.order(order, Tokens.ID);
     }
 
@@ -575,8 +581,8 @@ public class FaunusPipeline {
      * @param elementKey the key of the element to associate it with
      * @return the extended FaunusPipeline
      */
-    public FaunusPipeline order(final Tokens.F order, final String elementKey) {
-        return this.order(convert(order), elementKey);
+    public FaunusPipeline order(final com.tinkerpop.gremlin.Tokens.T order, final String elementKey) {
+        return this.order(com.tinkerpop.gremlin.Tokens.mapOrder(order), elementKey);
     }
 
     /**
@@ -585,8 +591,8 @@ public class FaunusPipeline {
      * @param order increasing and descending order
      * @return the extended FaunusPipeline
      */
-    public FaunusPipeline order(final Tokens.F order) {
-        return this.order(convert(order));
+    public FaunusPipeline order(final com.tinkerpop.gremlin.Tokens.T order) {
+        return this.order(com.tinkerpop.gremlin.Tokens.mapOrder(order));
     }
 
 
@@ -822,8 +828,8 @@ public class FaunusPipeline {
      * @param mergeWeightKey the property key to use for weight
      * @return the extended FaunusPipeline
      */
-    public FaunusPipeline linkIn(final String step, final String label, final String mergeWeightKey) {
-        return this.link(IN, step, label, mergeWeightKey);
+    public FaunusPipeline linkIn(final String label, final String step, final String mergeWeightKey) {
+        return this.link(IN, label, step, mergeWeightKey);
     }
 
     /**
@@ -833,8 +839,8 @@ public class FaunusPipeline {
      * @param label the label of the edge to project
      * @return the extended FaunusPipeline
      */
-    public FaunusPipeline linkIn(final String step, final String label) {
-        return this.link(IN, step, label, null);
+    public FaunusPipeline linkIn(final String label, final String step) {
+        return this.link(IN, label, step, null);
     }
 
     /**
@@ -847,8 +853,8 @@ public class FaunusPipeline {
      * @param mergeWeightKey the property key to use for weight
      * @return the extended FaunusPipeline
      */
-    public FaunusPipeline linkOut(final String step, final String label, final String mergeWeightKey) {
-        return link(OUT, step, label, mergeWeightKey);
+    public FaunusPipeline linkOut(final String label, final String step, final String mergeWeightKey) {
+        return link(OUT, label, step, mergeWeightKey);
     }
 
     /**
@@ -858,11 +864,11 @@ public class FaunusPipeline {
      * @param label the label of the edge to project
      * @return the extended FaunusPipeline
      */
-    public FaunusPipeline linkOut(final String step, final String label) {
-        return this.link(OUT, step, label, null);
+    public FaunusPipeline linkOut(final String label, final String step) {
+        return this.link(OUT, label, step, null);
     }
 
-    private FaunusPipeline link(final Direction direction, final String step, final String label, final String mergeWeightKey) {
+    private FaunusPipeline link(final Direction direction, final String label, final String step, final String mergeWeightKey) {
         this.state.assertNotLocked();
         this.state.assertNoProperty();
 
@@ -874,12 +880,12 @@ public class FaunusPipeline {
                 Holder.class,
                 NullWritable.class,
                 FaunusVertex.class,
-                LinkMapReduce.createConfiguration(direction, this.state.getStep(step), label, mergeWeightKey));
+                LinkMapReduce.createConfiguration(direction, label, this.state.getStep(step), mergeWeightKey));
 
         if (null != mergeWeightKey)
-            makeMapReduceString(LinkMapReduce.class, direction.name(), step, label, mergeWeightKey);
+            makeMapReduceString(LinkMapReduce.class, direction.name(), label, step, mergeWeightKey);
         else
-            makeMapReduceString(LinkMapReduce.class, direction.name(), step, label);
+            makeMapReduceString(LinkMapReduce.class, direction.name(), label, step);
         return this;
     }
 
