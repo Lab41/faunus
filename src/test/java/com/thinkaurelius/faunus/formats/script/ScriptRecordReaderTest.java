@@ -11,6 +11,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 
 /**
  * @author Marko A. Rodriguez (http://markorodriguez.com)
@@ -20,9 +21,9 @@ public class ScriptRecordReaderTest extends BaseTest {
     public void testRecordReader() throws Exception {
         final Configuration conf = new Configuration();
         conf.setStrings(ScriptInputFormat.FAUNUS_GRAPH_INPUT_SCRIPT_FILE, ScriptRecordReaderTest.class.getResource("ScriptInput.groovy").getFile());
-        ScriptRecordReader reader = new ScriptRecordReader(VertexQueryFilter.create(new EmptyConfiguration()), new TaskAttemptContext(conf, new TaskAttemptID()));
+        ScriptRecordReader reader = new ScriptRecordReader(VertexQueryFilter.create(new EmptyConfiguration()), new TaskAttemptContextImpl(conf, new TaskAttemptID()));
         reader.initialize(new FileSplit(new Path(ScriptRecordReaderTest.class.getResource("graph-of-the-gods.id").toURI()), 0, Long.MAX_VALUE, new String[]{}),
-                new TaskAttemptContext(conf, new TaskAttemptID()));
+                new TaskAttemptContextImpl(conf, new TaskAttemptID()));
         int counter = 0;
         while (reader.nextKeyValue()) {
             assertEquals(reader.getCurrentKey(), NullWritable.get());
