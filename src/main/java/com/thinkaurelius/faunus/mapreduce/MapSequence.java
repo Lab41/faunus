@@ -28,7 +28,7 @@ public class MapSequence {
         public void setup(final Mapper.Context context) throws IOException, InterruptedException {
             if (this.mappers.size() == 0) {
                 try {
-                    final MemoryMapContext memoryContext = new MemoryMapContext(context);
+                    final MemoryMapContext memoryContext = MemoryMapContextFactory.createMemoryMapperContext(this, context) ;
                     final String[] mapClassNames = context.getConfiguration().getStrings(MAP_CLASSES, new String[0]);
                     if (mapClassNames.length > 0) {
                         for (int i = 0; i < mapClassNames.length; i++) {
@@ -55,7 +55,7 @@ public class MapSequence {
                         }
                     }
                     this.size = this.mappers.size();
-                    this.memoryContext = new MemoryMapContext(context);
+                    this.memoryContext = MemoryMapContextFactory.createMemoryMapperContext(this, context);
                 } catch (final Exception e) {
                     throw new IOException(e);
                 }

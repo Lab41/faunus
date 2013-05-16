@@ -18,8 +18,21 @@ import java.util.Map;
  * @author Marko A. Rodriguez (http://markorodriguez.com)
  */
 public class MemoryMapper<A, B, C, D> extends Mapper<A, B, C, D> {
+    public static interface MemoryMapContext {
 
-    public class MemoryMapContext extends Mapper.Context {
+        public void write(final Object key, final Object value) throws IOException, InterruptedException;
+        public Writable getCurrentKey();
+        public Writable getCurrentValue();
+        public boolean nextKeyValue();
+        public Counter getCounter(final String groupName, final String counterName);
+        public Counter getCounter(final Enum counterName);
+        public Configuration getConfiguration();
+        public void setContext(final Mapper.Context context);
+        public void stageConfiguration(final int step) ;
+
+    }
+
+    public class MemoryMapContextImpl implements MemoryMapContext{
 
         private static final String DASH = "-";
         private static final String EMPTY = "";
@@ -33,48 +46,50 @@ public class MemoryMapper<A, B, C, D> extends Mapper<A, B, C, D> {
         private Mapper.Context context;
         private Configuration globalConfiguration;
 
-        public MemoryMapContext(final Mapper.Context context) throws IOException, InterruptedException {
-            super(context.getConfiguration(), context.getTaskAttemptID() == null ? new TaskAttemptID() : context.getTaskAttemptID(), null, null, context.getOutputCommitter(), null, context.getInputSplit());
+
+        public MemoryMapContextImpl(final Mapper.Context context) throws IOException, InterruptedException {
+            //super(context.getConfiguration(), context.getTaskAttemptID() == null ? new TaskAttemptID() : context.getTaskAttemptID(), null, null, context.getOutputCommitter(), null, context.getInputSplit());
             this.context = context;
             this.globalConfiguration = context.getConfiguration();
         }
 
-        @Override
+        /* @Override */
         public void write(final Object key, final Object value) throws IOException, InterruptedException {
             this.key = (Writable) key;
             this.value = (Writable) value;
         }
 
-        @Override
+        /* @Override */
         public Writable getCurrentKey() {
+
             this.tempKey = this.key;
             this.key = null;
             return this.tempKey;
         }
 
-        @Override
+        /* @Override */
         public Writable getCurrentValue() {
             this.tempValue = this.value;
             this.value = null;
             return tempValue;
         }
 
-        @Override
+        /* @Override */
         public boolean nextKeyValue() {
             return this.key != null && this.value != null;
         }
 
-        @Override
+        /* @Override */
         public Counter getCounter(final String groupName, final String counterName) {
             return this.context.getCounter(groupName, counterName);
         }
 
-        @Override
+        /* @Override */
         public Counter getCounter(final Enum counterName) {
             return this.context.getCounter(counterName);
         }
 
-        @Override
+        /* @Override */
         public Configuration getConfiguration() {
             return this.currentConfiguration;
         }
