@@ -20,7 +20,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <sesame.version>2.6.10</sesame.version>
         <tinkerpop.version>2.3.0</tinkerpop.version>
+    <hadoop.core.version>2.0.0-mr1-cdh4.2.0</hadoop.core.version>
+    <hadoop.version>2.0.0-cdh4.2.0</hadoop.version>
         <titan.version>0.4.0-SNAPSHOT</titan.version>
+        <hbase.version>0.94.2-cdh4.2.0</hbase.version>
     </properties>
     <developers>
         <developer>
@@ -54,6 +57,13 @@
         <url>git@github.com:thinkaurelius/faunus.git</url>
     </scm>
     <dependencies>
+        <!--clib -->
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
+            <version>2.2</version>
+        </dependency>
+
         <dependency>
             <groupId>com.tinkerpop.blueprints</groupId>
             <artifactId>blueprints-core</artifactId>
@@ -63,6 +73,7 @@
             <groupId>com.tinkerpop.gremlin</groupId>
             <artifactId>gremlin-groovy</artifactId>
             <version>${tinkerpop.version}</version>
+
         </dependency>
         <dependency>
             <groupId>com.tinkerpop.rexster</groupId>
@@ -71,8 +82,14 @@
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <version>${hadoop.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-core</artifactId>
-            <version>1.1.2</version>
+      <version>${hadoop.core.version}</version>
             <scope>provided</scope>
         </dependency>
         <!-- TITAN -->
@@ -90,7 +107,24 @@
             <groupId>com.thinkaurelius.titan</groupId>
             <artifactId>titan-hbase</artifactId>
             <version>${titan.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId> org.apahce.hbase</groupId>
+          <artifactId>hbase</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId> org.apahce.hadoop</groupId>
+          <artifactId>hadoop-core</artifactId>
+        </exclusion>
+
+      </exclusions>
         </dependency>
+    <!-- Adding HBase as a direct dependency -->
+    <dependency>
+      <groupId>org.apache.hbase</groupId>
+      <artifactId>hbase</artifactId>
+      <version>${hbase.version}</version>
+    </dependency>
         <!-- RDF PARSING -->
         <dependency>
             <groupId>org.openrdf.sesame</groupId>
@@ -121,12 +155,6 @@
             <groupId>org.openrdf.sesame</groupId>
             <artifactId>sesame-rio-turtle</artifactId>
             <version>${sesame.version}</version>
-        </dependency>
-        <!--clib -->
-        <dependency>
-            <groupId>cglib</groupId>
-            <artifactId>cglib</artifactId>
-            <version>2.2.2</version>
         </dependency>
 
         <!-- TESTING -->
