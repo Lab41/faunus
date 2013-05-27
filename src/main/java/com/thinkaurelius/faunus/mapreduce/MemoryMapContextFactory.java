@@ -21,14 +21,27 @@ public class MemoryMapContextFactory {
 
 
     private static Logger logger = LoggerFactory.getLogger(MemoryMapContextFactory.class);
+    private static final boolean useV21;
+
+
+    static
+    {
+        boolean v21 = true;
+        final String PACKAGE = "org.apache.hadoop.mapreduce";
+        try {
+            Class.forName("org.apache.hadoop.mapreduce.task.MapContextImpl");
+        } catch (ClassNotFoundException cnfe) {
+            v21 = false;
+        }
+        useV21 = v21;
+
+
+    }
 
     /**
      * This interceptor is designed to intercept calls to Mapper.Context.
      * Where it intercepts functions implemented by MemoryMapper.MemoryMapContext it calls those functions on an
      * instance of MemoryMapContext.
-     *
-     *
-     *
      *
      */
     public static class ContextInterceptor implements MethodInterceptor{
@@ -56,7 +69,6 @@ public class MemoryMapContextFactory {
                 if ((method1.getName() == method2.getName())) {
                     if (!method1.getReturnType().equals(method2.getReturnType()))
                         return false;
-		/* Avoid unnecessary cloning */
                     Class[] params1 = method1.getParameterTypes();
                     Class[] params2 = method2.getParameterTypes();
                     if (params1.length == params2.length) {
@@ -138,18 +150,18 @@ public class MemoryMapContextFactory {
                 null,
                 context.getInputSplit()};
 
-        if(isV2)
+        if(useV21)
         {
             //If we are dealing with Hadoop 2 the we need to set the super class to be
             //org.apache.hadoop.mapreduce.task.MapContextImpl
-            //In Hadoop Mapper.Context implements org.apache.hadoop.mapreduce.MapContext
-            //so we don't have to add that as interface.
+
             Class clazzMapContextImpl = Class.forName("org.apache.hadoop.mapreduce.task.MapContextImpl");
             enhancer.setSuperclass(clazzMapContextImpl);
 
             return (MemoryMapper.MemoryMapContext) enhancer.create(argTypes, arguments);
         }
         else
+
         {
             enhancer.setSuperclass(Mapper.Context.class);
             return (MemoryMapper.MemoryMapContext) enhancer.create(argTypes, arguments);
