@@ -2,6 +2,7 @@ package com.thinkaurelius.faunus.mapreduce;
 
 import com.thinkaurelius.faunus.Tokens;
 import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.mapreduce.MapContext;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import java.io.IOException;
@@ -69,7 +70,7 @@ public class MapSequence {
                 this.memoryContext.write(key, value);
 
                 for (int i = 0; i < this.size - 1; i++) {
-                    this.mapMethods.get(i).invoke(this.mappers.get(i), this.memoryContext.getCurrentKey(), this.memoryContext.getCurrentValue(), (Mapper.Context)this.memoryContext);
+                    this.mapMethods.get(i).invoke(this.mappers.get(i), this.memoryContext.getCurrentKey(), this.memoryContext.getCurrentValue(), (Context)this.memoryContext);
                     if (!this.memoryContext.nextKeyValue()) {
                         break;
                     }

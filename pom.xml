@@ -20,11 +20,32 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <sesame.version>2.6.10</sesame.version>
         <tinkerpop.version>2.3.0</tinkerpop.version>
-    <hadoop.core.version>2.0.0-mr1-cdh4.2.0</hadoop.core.version>
-    <hadoop.version>2.0.0-cdh4.2.0</hadoop.version>
         <titan.version>0.4.0-SNAPSHOT</titan.version>
-        <hbase.version>0.94.2-cdh4.2.0</hbase.version>
     </properties>
+    <profiles>
+        <profile>
+            <id>hadoop1</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <hadoop.core.version>1.1.2</hadoop.core.version>
+                <hadoop.version>1.1.2</hadoop.version>
+                <hbase.version>0.94.7</hbase.version>
+                <mrunit.classifier>hadoop1</mrunit.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>hadoop2</id>
+
+            <properties>
+                <hadoop.core.version>2.0.0-mr1-cdh4.2.0</hadoop.core.version>
+                <hadoop.version>2.0.0-cdh4.2.0</hadoop.version>
+                <hbase.version>0.94.2-cdh4.2.0</hbase.version>
+                <mrunit.classifier>hadoop2</mrunit.classifier>
+            </properties>
+        </profile>
+    </profiles>
     <developers>
         <developer>
             <name>Marko A. Rodriguez</name>
@@ -82,14 +103,14 @@
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client</artifactId>
-      <version>${hadoop.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-core</artifactId>
-      <version>${hadoop.core.version}</version>
+            <version>${hadoop.core.version}</version>
             <scope>provided</scope>
         </dependency>
         <!-- TITAN -->
@@ -107,24 +128,24 @@
             <groupId>com.thinkaurelius.titan</groupId>
             <artifactId>titan-hbase</artifactId>
             <version>${titan.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId> org.apahce.hbase</groupId>
-          <artifactId>hbase</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId> org.apahce.hadoop</groupId>
-          <artifactId>hadoop-core</artifactId>
-        </exclusion>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apahce.hbase</groupId>
+                    <artifactId>hbase</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apahce.hadoop</groupId>
+                    <artifactId>hadoop-core</artifactId>
+                </exclusion>
 
-      </exclusions>
+            </exclusions>
         </dependency>
-    <!-- Adding HBase as a direct dependency -->
-    <dependency>
-      <groupId>org.apache.hbase</groupId>
-      <artifactId>hbase</artifactId>
-      <version>${hbase.version}</version>
-    </dependency>
+        <!-- Adding HBase as a direct dependency -->
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase</artifactId>
+            <version>${hbase.version}</version>
+        </dependency>
         <!-- RDF PARSING -->
         <dependency>
             <groupId>org.openrdf.sesame</groupId>
@@ -168,7 +189,7 @@
             <groupId>org.apache.mrunit</groupId>
             <artifactId>mrunit</artifactId>
             <version>0.9.0-incubating</version>
-            <classifier>hadoop1</classifier>
+            <classifier>${mrunit.classifier}</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -179,9 +200,21 @@
     </dependencies>
     <repositories>
         <repository>
+            <id>cloudera</id>
+            <name>Cloudera repository</name>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
+        <repository>
             <id>aduna-repo</id>
             <name>Aduna repository</name>
             <url>http://repo.aduna-software.org/maven2/releases</url>
+        </repository>
+        <repository>
+            <id>sonatype-oss-public</id>
+            <url>https://oss.sonatype.org/content/groups/public/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
     </repositories>
     <build>

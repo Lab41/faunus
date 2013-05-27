@@ -5,6 +5,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.OutputCommitter;
 import org.apache.hadoop.mapred.TaskAttemptID;
 import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.MapContext;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.junit.Test;
 import static org.mockito.Mockito.*;
@@ -29,7 +30,7 @@ public class MemmoryMapperContextFactoryTest {
         when(mockedContext.getInputSplit()).thenReturn(mockInputSplit);
 
 
-        Mapper.Context context = (Mapper.Context) MemoryMapContextFactory.createMemoryMapperContext(mapper, mockedContext);
+       MapContext context = (MapContext) MemoryMapContextFactory.createMemoryMapperContext(mapper, mockedContext);
 
         MemoryMapper.MemoryMapContext memoryMapContext = (MemoryMapper.MemoryMapContext) context;
 

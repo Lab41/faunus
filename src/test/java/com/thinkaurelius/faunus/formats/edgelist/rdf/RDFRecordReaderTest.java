@@ -1,6 +1,7 @@
 package com.thinkaurelius.faunus.formats.edgelist.rdf;
 
 import com.thinkaurelius.faunus.BaseTest;
+import com.thinkaurelius.faunus.TaskAttemptContextFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.NullWritable;
@@ -18,7 +19,7 @@ public class RDFRecordReaderTest extends BaseTest {
         conf.set(RDFInputFormat.FAUNUS_GRAPH_INPUT_RDF_FORMAT, "n-triples");
         RDFRecordReader reader = new RDFRecordReader(conf);
         reader.initialize(new FileSplit(new Path(RDFRecordReaderTest.class.getResource("graph-example-1.ntriple").toURI()), 0, Long.MAX_VALUE, new String[]{}),
-                new TaskAttemptContext(conf, new TaskAttemptID()));
+               TaskAttemptContextFactory.createTaskAttemptContext(conf, new TaskAttemptID()));
         int counter = 0;
         while (reader.nextKeyValue()) {
             assertEquals(reader.getCurrentKey(), NullWritable.get());
