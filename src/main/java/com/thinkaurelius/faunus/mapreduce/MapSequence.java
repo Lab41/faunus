@@ -69,7 +69,7 @@ public class MapSequence {
                 this.memoryContext.write(key, value);
 
                 for (int i = 0; i < this.size - 1; i++) {
-                    this.mapMethods.get(i).invoke(this.mappers.get(i), this.memoryContext.getCurrentKey(), this.memoryContext.getCurrentValue(), this.memoryContext);
+                    this.mapMethods.get(i).invoke(this.mappers.get(i), this.memoryContext.getCurrentKey(), this.memoryContext.getCurrentValue(), (Mapper.Context)this.memoryContext);
                     if (!this.memoryContext.nextKeyValue()) {
                         break;
                     }

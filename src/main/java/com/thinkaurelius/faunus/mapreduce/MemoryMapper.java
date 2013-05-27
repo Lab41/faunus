@@ -30,6 +30,7 @@ public class MemoryMapper<A, B, C, D> extends Mapper<A, B, C, D> {
         public void setContext(final Mapper.Context context);
         public void stageConfiguration(final int step) ;
 
+
     }
 
     public class MemoryMapContextImpl implements MemoryMapContext{
