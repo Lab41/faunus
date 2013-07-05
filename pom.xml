@@ -10,7 +10,7 @@
   <groupId>com.thinkaurelius.faunus</groupId>
   <artifactId>faunus</artifactId>
   <!-- DON'T FORGET TO UPDATE Tokens.java -->
-  <version>0.4.0-SNAPSHOT</version>
+  <version>0.3.1</version>
   <packaging>jar</packaging>
   <url>http://thinkaurelius.github.com/faunus/</url>
   <name>Faunus: Graph Analytics Engine</name>
@@ -22,7 +22,7 @@
     <tinkerpop.version>2.3.0</tinkerpop.version>
     <hadoop.core.version>2.0.0-mr1-cdh4.2.0</hadoop.core.version>
     <hadoop.version>2.0.0-cdh4.2.0</hadoop.version>
-    <titan.version>0.4.0-SNAPSHOT</titan.version>
+    <titan.version>0.3.1</titan.version>
   </properties>
   <developers>
     <developer>
