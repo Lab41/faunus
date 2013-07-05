@@ -100,11 +100,11 @@
       <version>${titan.version}</version>
       <exclusions>
         <exclusion>
-          <groupId> org.apahce.hbase</groupId>
+          <groupId> org.apache.hbase</groupId>
           <artifactId>hbase</artifactId>
         </exclusion>
         <exclusion>
-          <groupId> org.apahce.hadoop</groupId>
+          <groupId> org.apache.hadoop</groupId>
           <artifactId>hadoop-core</artifactId>
         </exclusion>
 
