@@ -3,6 +3,8 @@ package com.thinkaurelius.faunus.mapreduce;
 import com.thinkaurelius.faunus.FaunusGraph;
 import com.thinkaurelius.faunus.FaunusVertex;
 import com.thinkaurelius.faunus.Tokens;
+import com.thinkaurelius.faunus.formats.FormatTools;
+import com.thinkaurelius.faunus.formats.JobConfigurationFormat;
 import com.thinkaurelius.faunus.hdfs.NoSideEffectFilter;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -42,7 +44,7 @@ public class FaunusCompiler extends Configured implements Tool {
     public static final String PATH_ENABLED = Tokens.makeNamespace(FaunusCompiler.class) + ".pathEnabled";
     public static final String TESTING = Tokens.makeNamespace(FaunusCompiler.class) + ".testing";
 
-    protected final Logger logger = Logger.getLogger(FaunusCompiler.class);
+    public static final Logger logger = Logger.getLogger(FaunusCompiler.class);
 
     private FaunusGraph graph;
 
@@ -202,26 +204,31 @@ public class FaunusCompiler extends Configured implements Tool {
             return;
         }
 
-        String hadoopFileJar = null;
-        if (new File("target/" + Tokens.FAUNUS_JOB_JAR).exists()) {
-            logger.warn("Using developer reference to target/" + Tokens.FAUNUS_JOB_JAR);
-            hadoopFileJar = "target/" + Tokens.FAUNUS_JOB_JAR;
-        } else if (new File("../target/" + Tokens.FAUNUS_JOB_JAR).exists()) {
-            logger.warn("Using developer reference to target/" + Tokens.FAUNUS_JOB_JAR);
-            hadoopFileJar = "../target/" + Tokens.FAUNUS_JOB_JAR;
-        } else if (new File("lib/" + Tokens.FAUNUS_JOB_JAR).exists()) {
-            logger.warn("Using distribution reference to lib/" + Tokens.FAUNUS_JOB_JAR);
-            hadoopFileJar = "lib/" + Tokens.FAUNUS_JOB_JAR;
-        } else if (new File("../lib/" + Tokens.FAUNUS_JOB_JAR).exists()) {
-            logger.warn("Using distribution reference to lib/" + Tokens.FAUNUS_JOB_JAR);
-            hadoopFileJar = "../lib/" + Tokens.FAUNUS_JOB_JAR;
-        } else {
-            final String faunusHome = System.getenv(Tokens.FAUNUS_HOME);
-            if (null == faunusHome || faunusHome.isEmpty())
-                throw new IllegalStateException("FAUNUS_HOME must be set in order to locate the Faunus Hadoop job jar: " + Tokens.FAUNUS_JOB_JAR);
-            if (new File(faunusHome + "/lib/" + Tokens.FAUNUS_JOB_JAR).exists()) {
-                hadoopFileJar = faunusHome + "/lib/" + Tokens.FAUNUS_JOB_JAR;
+        String hadoopFileJar = graph.getConf().get("mapred.jar", null);
+        if (null == hadoopFileJar) {
+            if (new File("target/" + Tokens.FAUNUS_JOB_JAR).exists()) {
+                hadoopFileJar = "target/" + Tokens.FAUNUS_JOB_JAR;
+                logger.warn("Using the developer Faunus job jar: " + hadoopFileJar);
+            } else if (new File("../target/" + Tokens.FAUNUS_JOB_JAR).exists()) {
+                hadoopFileJar = "../target/" + Tokens.FAUNUS_JOB_JAR;
+                logger.warn("Using the developer Faunus job jar: " + hadoopFileJar);
+            } else if (new File("lib/" + Tokens.FAUNUS_JOB_JAR).exists()) {
+                hadoopFileJar = "lib/" + Tokens.FAUNUS_JOB_JAR;
+                logger.warn("Using the distribution Faunus job jar: " + hadoopFileJar);
+            } else if (new File("../lib/" + Tokens.FAUNUS_JOB_JAR).exists()) {
+                hadoopFileJar = "../lib/" + Tokens.FAUNUS_JOB_JAR;
+                logger.warn("Using the distribution Faunus job jar: " + hadoopFileJar);
+            } else {
+                final String faunusHome = System.getenv(Tokens.FAUNUS_HOME);
+                if (null == faunusHome || faunusHome.isEmpty())
+                    throw new IllegalStateException("FAUNUS_HOME must be set in order to locate the Faunus Hadoop job jar: " + Tokens.FAUNUS_JOB_JAR);
+                if (new File(faunusHome + "/lib/" + Tokens.FAUNUS_JOB_JAR).exists()) {
+                    hadoopFileJar = faunusHome + "/lib/" + Tokens.FAUNUS_JOB_JAR;
+                    logger.info("Using the distribution Faunus job jar: " + hadoopFileJar);
+                }
             }
+        } else {
+            logger.info("Using the provided Faunus job jar: " + hadoopFileJar);
         }
         if (null == hadoopFileJar)
             throw new IllegalStateException("The Faunus Hadoop job jar could not be found: " + Tokens.FAUNUS_JOB_JAR);
@@ -306,6 +313,10 @@ public class FaunusCompiler extends Configured implements Tool {
         final String jobPath = this.graph.getOutputLocation().toString() + "/" + Tokens.JOB;
         for (int i = 0; i < this.jobs.size(); i++) {
             final Job job = this.jobs.get(i);
+            try {
+                ((JobConfigurationFormat) (FormatTools.getBaseOutputFormatClass(job).newInstance())).updateJob(job);
+            } catch (final Exception e) {
+            }
             logger.info("Executing job " + (i + 1) + " out of " + this.jobs.size() + ": " + job.getJobName());
             logger.info("Job data location: " + jobPath + "-" + i);
             boolean success = job.waitForCompletion(true);
