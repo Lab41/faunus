@@ -194,7 +194,8 @@
         <repository>
             <id>aduna-repo</id>
             <name>Aduna repository</name>
-            <url>http://repo.aduna-software.org/maven2/releases</url>
+            <!-- Aduna repo is down -->
+            <url>http://repo.maven.apache.org/maven2/releases</url>
         </repository>
     </repositories>
     <build>
